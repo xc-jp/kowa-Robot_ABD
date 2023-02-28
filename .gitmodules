@@ -1,0 +1,4 @@
+[submodule "PyTorchGrasping"]
+	path = PyTorchGrasping
+	url = git@github.com:xc-jp/PyTorchGrasping.git
+	branch = kowa/v1.2.1
