@@ -4,6 +4,9 @@ import torch
 
 from abnormality_detection import abnormality_detection
 
+from PIL import Image
+import numpy as np
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments.
@@ -30,8 +33,11 @@ if __name__ == "__main__":
 
     # TODO load image (As a PIL.Image) from path, load allowed regions from path (as np.ndarray) and pass them as
     # arguments for judge_image()
-    detected_objects = abnormality_detection.judge_image()
-
-    for object in detected_objects:
-        # TODO if object is outside allowed region, print its information
-        pass
+    # image = Image.open("C:/Users/GBM/Downloads/XC/images/images/sample_000002.jpg")
+    # allowed_regions = np.array(Image.open("path_to_allowed_regions_map"))
+    # detected_objects = abnormality_detection.judge_image(grasping_model, image, allowed_regions, device)
+    # instead call grasping inference and print what's been returned
+    # detected_objects = abnormality_detection.grasping_inference(grasping_model, image, device)
+    # for object in detected_objects:
+    #     # TODO if object is outside allowed region, print its information
+    #     pass
