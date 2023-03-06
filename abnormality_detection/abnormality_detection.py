@@ -12,7 +12,7 @@ import json
 
 
 def load_model(model_path: Path, device: torch.device) -> Dict[str, Any]:
-    # TODO load pytorch model weights
+    # loads pytorch model weights
     with open(model_path.joinpath('obj', 'build_parameter.json'), encoding='utf-8') as f:
         build_parameters = json.load(f)
     return _load_grasping(model_path, build_parameters, device)
@@ -20,6 +20,7 @@ def load_model(model_path: Path, device: torch.device) -> Dict[str, Any]:
 
 def _load_grasping(
         path: Path, build_parameters: Dict[str, Any], device: torch.device) -> Dict[str, Any]:
+    # loads the grasping model from the device
     input_width = build_parameters['input_width']
     input_height = build_parameters['input_height']
     nb_classes = build_parameters['nb_classes']
@@ -44,24 +45,21 @@ def _load_grasping(
 
 
 def grasping_inference(model: Dict[str, Any], image: Image.Image,
-                       device: torch.device) -> Dict[str, Any]:
-    #     # TODO implement Grasping Inference Call
-    #     # It should return a list with the detected objects centers
-    # return grasping_infer(model, image, device)
-    prediction_points, prediction_image = grasping_infer.infer(
-        model['network'], image, model['input_width'], model['input_height'], device, visualization=False,
+                       device: torch.device) -> List[Dict[str, Any]]:
+    # calls Grasping Inference
+    # returns a list with the detected objects' centers
+    prediction_points, visualization_results = grasping_infer.infer(
+        model['network'], image, model['input_width'], model['input_height'], device, visualization=True,
         dim_mins=model['dim_mins'], dim_maxs=model['dim_maxs']
     )
-    return prediction_points
+    return prediction_points, visualization_results
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
-    # TODO implement method
-    # It should return true  if the coordinates is inside allowed region, false otherwise
-    # i'm not sure how the map looks like, or how allowed regions are recognized, so as a first solution,
-    # i'm assuming that the ndarray is a representation of the map with NaN
-    # values for unallowed coordinates
-    return allowed_regions[round(x)][round(y)] != np.NaN
+    # evaluates whether or not the object is outside allowed area
+    # returns true  if the coordinates is inside allowed region, false otherwise
+    # allowed_regions is a black&white image (0 to 1 values), 0 for allowed coordinates
+    return allowed_regions[round(x)][round(y)] != 0
 
 
 def judge_positions(positions: Dict[str, Any], allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
