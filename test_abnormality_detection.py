@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import List
 
 import torch
 import numpy as np
@@ -30,15 +31,27 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
     # TODO install pytorch with cuda supported
-    device = torch.device('cpu')
+    device = torch.device('cuda')
     grasping_model = abnormality_detection.load_model(Path(args.model_path), device)
-    print(grasping_model)
-    image = Image.open("C:/Users/GBM/Downloads/XC/images/images/sample_000002.jpg")
+    # print(grasping_model)
+    print("Model passed________________________________________________________________")
+    image = Image.open("C:/Users/GBM/Downloads/XC/images/sample_000001.jpg")
     # call grasping inference and print what's been returned
     detected_objects, visualization_results = abnormality_detection.grasping_inference(
         grasping_model, image, device)
-    print(detected_objects)
+    # print(detected_objects)
+    print("objects detected________________________________________________________________")
+    #       visualization_results.save("")#inputname_timestamp  to verify
     visualization_results.show()
+    print("visualized________________________________________________________________")
+    print(len(detected_objects))
+    print(type(detected_objects))
+    # for elem in detected_objects:
+    #     print(type(elem))
+
+    # for elem in detected_objects:
+    #     detected_objects.remove(detected_objects.index(elem))
+
     # # OR TODO passing image and allowed_regions as arguments for judge_image()
     # allowed_regions = np.array(Image.open("C:/Users/GBM/Downloads/XC/images/images/allowed_regions_map.jpg"))
     # detected_objects = abnormality_detection.judge_image(grasping_model, image, allowed_regions, device)

@@ -62,10 +62,15 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     return allowed_regions[round(x)][round(y)] != 0
 
 
-def judge_positions(positions: Dict[str, Any], allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
-    # TODO implement method
-    # It should return a list with the positions with the addition of a new key: "allowed_region": true/false
-    raise NotImplementedError()
+def judge_positions(positions: List[Dict[str, Any]],
+                    allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
+    # returns a list with the positions with the addition of a new key: "allowed_region": true/false
+    for position in positions:
+        position['judge'] = is_allowed(  # check type of x & y
+            float(position['x']),
+            float(position['y']),
+            allowed_regions)
+    return positions
 
 
 def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
