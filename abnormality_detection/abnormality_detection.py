@@ -1,5 +1,7 @@
 """Module Description"""
 from typing import Any, Dict, List
+from datetime import datetime
+import os
 
 import numpy as np
 import torch
@@ -58,22 +60,33 @@ def grasping_inference(model: Dict[str, Any], image: Image.Image,
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     # evaluates whether or not the object is outside allowed area
     # returns true  if the coordinates is inside allowed region, false otherwise
-    # allowed_regions is a black&white image (0 to 1 values), 0 for allowed coordinates
-    return allowed_regions[round(x)][round(y)] != 0
+    # allowed_regions is a B&W image (ideally 0-1 values), 0 for allowed coordinates
+    return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
 def judge_positions(positions: List[Dict[str, Any]],
                     allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
     # returns a list with the positions with the addition of a new key: "allowed_region": true/false
     for position in positions:
-        position['judge'] = is_allowed(  # check type of x & y
-            float(position['x']),
-            float(position['y']),
+        position["judge"] = is_allowed(
+            position['x'],
+            position['y'],
             allowed_regions)
     return positions
 
 
-def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
+def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.ndarray, device: torch.device
                 ) -> List[Dict[str, Any]]:
-    detected_objects = grasping_inference(model, image, device)
+
+    image = Image.open(image_path)
+    # call the grasping inference function and return the objects' list
+    detected_objects, visualization = grasping_inference(model, image, device)
+
+    # save visualization_results as inputimage_timestamp.jpg format (under same path as the image)
+    dt = datetime.now()
+    ts = str(datetime.timestamp(dt))
+    no_extension = os.path.splitext(image_path)[0]
+    # visualization_results.show()
+    visualization.save(f"{no_extension}_{ts}.jpg")
+
     return judge_positions(detected_objects, allowed_regions)
