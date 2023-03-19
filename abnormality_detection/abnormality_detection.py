@@ -47,14 +47,18 @@ def _load_grasping(
 
 
 def grasping_inference(model: Dict[str, Any], image: Image.Image,
-                       device: torch.device) -> List[Dict[str, Any]]:
+                       device: torch.device, conf_threshold: float) -> List[Dict[str, Any]]:
     # calls Grasping Inference
     # returns a list with the detected objects' centers
     prediction_points, visualization_results = grasping_infer.infer(
         model['network'], image, model['input_width'], model['input_height'], device, visualization=True,
         dim_mins=model['dim_mins'], dim_maxs=model['dim_maxs']
     )
-    return prediction_points, visualization_results
+    new_list = []
+    for point in prediction_points:
+        if point['confidence'] >= conf_threshold:
+            new_list.append(point)
+    return new_list, visualization_results
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
@@ -75,12 +79,12 @@ def judge_positions(positions: List[Dict[str, Any]],
     return positions
 
 
-def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.ndarray, device: torch.device
+def judge_image(model: Dict[str, Any], conf_threshold: float, image_path: Path, allowed_regions: np.ndarray, device: torch.device
                 ) -> List[Dict[str, Any]]:
 
     image = Image.open(image_path)
     # call the grasping inference function and return the objects' list
-    detected_objects, visualization = grasping_inference(model, image, device)
+    detected_objects, visualization = grasping_inference(model, image, device, conf_threshold)
 
     # save visualization_results as inputimage_timestamp.jpg format (under same path as the image)
     dt = datetime.now()
@@ -88,5 +92,36 @@ def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.nda
     no_extension = os.path.splitext(image_path)[0]
     # visualization_results.show()
     visualization.save(f"{no_extension}_{ts}.jpg")
-
     return judge_positions(detected_objects, allowed_regions)
+
+
+def greyscale_to_RGB(height, width, map: np.ndarray) -> np.ndarray:
+    # change allowed_regions from greyscale to rgb
+    map_rgb = np.zeros((height, width, 3))
+    for ch in range(3):
+        for xx in range(height):
+            for yy in range(width):
+                map_rgb[xx, yy, ch] = map[xx, yy]
+    return map_rgb
+
+
+def plot_object(model: Dict[str, Any], positions: List[Dict[str, Any]],
+                allowed_regions: np.ndarray) -> Image:
+    for position in positions:
+        x = round(position['x']) - 1
+        y = round(position['y']) - 1
+        height = model['input_height']
+        width = model['input_width']
+        allowed_regions_rgb = greyscale_to_RGB(height, width, model)
+        if is_allowed(x, y, allowed_regions):
+            # color pixel in blue
+            allowed_regions_rgb[x, y, 0] = 0
+            allowed_regions_rgb[x, y, 1] = 0
+            allowed_regions_rgb[x, y, 2] = 255
+        else:
+            # color pixel in red
+            allowed_regions_rgb[x, y, 0] = 255
+            allowed_regions_rgb[x, y, 1] = 0
+            allowed_regions_rgb[x, y, 2] = 0
+
+    return Image.fromarray(allowed_regions_rgb)

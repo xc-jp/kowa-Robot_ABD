@@ -26,6 +26,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('allowed_regions', type=str, help='Path to an image describing the allowed regions.'
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
+    parser.add_argument(
+        'conf_threshold',
+        type=float,
+        default=0,
+        required=False,
+        help='It must be between 0 and 1')
     return parser.parse_args()
 
 
@@ -36,12 +42,14 @@ if __name__ == "__main__":
     # loading model, image, and allowed_regions
     model = abnormality_detection.load_model(Path(args.model_path), device)
     image_path = Path(args.image_path)
+    conf_threshold = args.conf_threshold
     map = Image.open('C:/Users/GBM/Downloads/XC/map.png').convert('L')
     allowed_regions = np.asarray(map)
     allowed_regions = allowed_regions.T
 
     # pass image and allowed_regions as arguments for judge_image()
-    detected_items = abnormality_detection.judge_image(model, image_path, allowed_regions, device)
+    detected_items = abnormality_detection.judge_image(
+        model, conf_threshold, image_path, allowed_regions, device)
 
     for object in detected_items:
         #  if object is outside allowed region, print its information
