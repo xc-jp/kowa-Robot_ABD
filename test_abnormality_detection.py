@@ -27,10 +27,10 @@ def parse_args() -> argparse.Namespace:
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
     parser.add_argument(
-        'conf_threshold',
+        '--conf_threshold',
         type=float,
         default=0,
-        required=False,
+        # required=False,
         help='It must be between 0 and 1')
     return parser.parse_args()
 
@@ -43,15 +43,25 @@ if __name__ == "__main__":
     model = abnormality_detection.load_model(Path(args.model_path), device)
     image_path = Path(args.image_path)
     conf_threshold = args.conf_threshold
-    map = Image.open('C:/Users/GBM/Downloads/XC/map.png').convert('L')
-    allowed_regions = np.asarray(map)
+    map = Image.open('C:/Users/GBM/Downloads/XC/map.png')
+    # map_rgb = np.asarray(map).T
+    map_rgb = np.array(Image.open('C:/Users/GBM/Downloads/XC/map.png')).T
+    map_greyscale = map.convert('L')
+    allowed_regions = np.asarray(map_greyscale)
     allowed_regions = allowed_regions.T
 
     # pass image and allowed_regions as arguments for judge_image()
     detected_items = abnormality_detection.judge_image(
-        model, conf_threshold, image_path, allowed_regions, device)
+        model, image_path, allowed_regions, device, conf_threshold)
 
     for object in detected_items:
         #  if object is outside allowed region, print its information
         if object["judge"] == False:
             print(object)
+
+    print(map_rgb.shape)
+    print(allowed_regions.shape)
+
+    plotting_image = abnormality_detection.plot_object(detected_items, map_rgb)
+
+    print("plotted image")

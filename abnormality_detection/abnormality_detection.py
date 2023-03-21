@@ -79,9 +79,8 @@ def judge_positions(positions: List[Dict[str, Any]],
     return positions
 
 
-def judge_image(model: Dict[str, Any], conf_threshold: float, image_path: Path, allowed_regions: np.ndarray, device: torch.device
-                ) -> List[Dict[str, Any]]:
-
+def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.ndarray,
+                device: torch.device, conf_threshold: float) -> List[Dict[str, Any]]:
     image = Image.open(image_path)
     # call the grasping inference function and return the objects' list
     detected_objects, visualization = grasping_inference(model, image, device, conf_threshold)
@@ -95,33 +94,24 @@ def judge_image(model: Dict[str, Any], conf_threshold: float, image_path: Path, 
     return judge_positions(detected_objects, allowed_regions)
 
 
-def greyscale_to_RGB(height, width, map: np.ndarray) -> np.ndarray:
-    # change allowed_regions from greyscale to rgb
-    map_rgb = np.zeros((height, width, 3))
-    for ch in range(3):
-        for xx in range(height):
-            for yy in range(width):
-                map_rgb[xx, yy, ch] = map[xx, yy]
-    return map_rgb
-
-
-def plot_object(model: Dict[str, Any], positions: List[Dict[str, Any]],
-                allowed_regions: np.ndarray) -> Image:
-    for position in positions:
-        x = round(position['x']) - 1
-        y = round(position['y']) - 1
-        height = model['input_height']
-        width = model['input_width']
-        allowed_regions_rgb = greyscale_to_RGB(height, width, model)
-        if is_allowed(x, y, allowed_regions):
+def plot_object(judged_items: List[Dict[str, Any]],
+                allowed_regions_rgb: np.ndarray) -> np.ndarray:
+    # i dont know why i'd need the height and width
+    print(allowed_regions_rgb.shape)
+    for item in judged_items:
+        x = round(item['x']) - 1
+        y = round(item['y']) - 1
+        # height = model['input_height']
+        # width = model['input_width']
+        if item['judge']:
             # color pixel in blue
-            allowed_regions_rgb[x, y, 0] = 0
-            allowed_regions_rgb[x, y, 1] = 0
-            allowed_regions_rgb[x, y, 2] = 255
+            allowed_regions_rgb[0, x, y] = 0
+            allowed_regions_rgb[1, x, y] = 0
+            allowed_regions_rgb[2, x, y] = 255
         else:
             # color pixel in red
-            allowed_regions_rgb[x, y, 0] = 255
-            allowed_regions_rgb[x, y, 1] = 0
-            allowed_regions_rgb[x, y, 2] = 0
+            allowed_regions_rgb[0, x, y] = 255
+            allowed_regions_rgb[1, x, y] = 0
+            allowed_regions_rgb[2, x, y] = 0
 
-    return Image.fromarray(allowed_regions_rgb)
+    return allowed_regions_rgb
