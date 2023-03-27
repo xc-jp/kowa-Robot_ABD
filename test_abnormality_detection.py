@@ -44,8 +44,6 @@ if __name__ == "__main__":
     image_path = Path(args.image_path)
     conf_threshold = args.conf_threshold
     map = Image.open('C:/Users/GBM/Downloads/XC/map.png')
-    # map_rgb = np.asarray(map).T
-    map_rgb = np.array(Image.open('C:/Users/GBM/Downloads/XC/map.png')).T
     map_greyscale = map.convert('L')
     allowed_regions = np.asarray(map_greyscale)
     allowed_regions = allowed_regions.T
@@ -53,15 +51,6 @@ if __name__ == "__main__":
     # pass image and allowed_regions as arguments for judge_image()
     detected_items = abnormality_detection.judge_image(
         model, image_path, allowed_regions, device, conf_threshold)
-
-    for object in detected_items:
-        #  if object is outside allowed region, print its information
-        if object["judge"] == False:
-            print(object)
-
-    print(map_rgb.shape)
-    print(allowed_regions.shape)
-
-    plotting_image = abnormality_detection.plot_object(detected_items, map_rgb)
-
-    print("plotted image")
+    # plot objects' positions in blue/green on the allowed_region map
+    output = abnormality_detection.plot_object(detected_items, map)
+    output.save('C:/Users/GBM/Downloads/XC/output.png')

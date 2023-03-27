@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
@@ -47,7 +47,7 @@ def _load_grasping(
 
 
 def grasping_inference(model: Dict[str, Any], image: Image.Image,
-                       device: torch.device, conf_threshold: float) -> List[Dict[str, Any]]:
+                       device: torch.device, conf_threshold=0) -> List[Dict[str, Any]]:
     # calls Grasping Inference
     # returns a list with the detected objects' centers
     prediction_points, visualization_results = grasping_infer.infer(
@@ -80,7 +80,7 @@ def judge_positions(positions: List[Dict[str, Any]],
 
 
 def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.ndarray,
-                device: torch.device, conf_threshold: float) -> List[Dict[str, Any]]:
+                device: torch.device, conf_threshold: float = 0) -> List[Dict[str, Any]]:
     image = Image.open(image_path)
     # call the grasping inference function and return the objects' list
     detected_objects, visualization = grasping_inference(model, image, device, conf_threshold)
@@ -94,24 +94,15 @@ def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.nda
     return judge_positions(detected_objects, allowed_regions)
 
 
-def plot_object(judged_items: List[Dict[str, Any]],
-                allowed_regions_rgb: np.ndarray) -> np.ndarray:
-    # i dont know why i'd need the height and width
-    print(allowed_regions_rgb.shape)
+def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.Image):
+    draw = ImageDraw.Draw(allowed_regions_rgb)
     for item in judged_items:
         x = round(item['x']) - 1
         y = round(item['y']) - 1
-        # height = model['input_height']
-        # width = model['input_width']
         if item['judge']:
-            # color pixel in blue
-            allowed_regions_rgb[0, x, y] = 0
-            allowed_regions_rgb[1, x, y] = 0
-            allowed_regions_rgb[2, x, y] = 255
+            # mark position in blue
+            draw.regular_polygon((x, y, 3), 6, rotation=0, fill='blue', outline=None)
         else:
-            # color pixel in red
-            allowed_regions_rgb[0, x, y] = 255
-            allowed_regions_rgb[1, x, y] = 0
-            allowed_regions_rgb[2, x, y] = 0
-
+            # mark position in red
+            draw.regular_polygon((x, y, 3), 6, rotation=0, fill='red', outline=None)
     return allowed_regions_rgb
