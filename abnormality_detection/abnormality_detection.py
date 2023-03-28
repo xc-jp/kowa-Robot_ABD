@@ -2,10 +2,12 @@
 from typing import Any, Dict, List
 from datetime import datetime
 import os
+from itertools import combinations
 
 import numpy as np
 import torch
 from PIL import Image, ImageDraw
+from math import sqrt
 
 from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
@@ -68,9 +70,35 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
+def within_angle_range(angle: float) -> bool:
+    return angle in [-90, +90]
+
+
+def judge_angle(positions: List[Dict[str, any]]) -> List[Dict[str, Any]]:
+    for position in positions:
+        position['judge_angle'] = within_angle_range(position['beta'])
+    return positions
+
+
+def judge_distance(positions: List[Dict[str, Any]], limit_dist: float):
+    # translate distance form pixels to another unit?
+    pairs = list(combinations(positions, 2))
+    for pair in pairs:
+        x1 = pair[0]['x']
+        y1 = pair[0]['y']
+        x2 = pair[1]['x']
+        y2 = pair[1]['y']
+        actual_dist = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+        print(actual_dist)
+        if actual_dist < limit_dist:
+            print(f"objects at pixel coordinates({x1}, {y1}) and ({x2}, {y2}) are too close")
+            # how to refer to the objects in a better way
+
+
+
 def judge_positions(positions: List[Dict[str, Any]],
                     allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
-    # returns a list with the positions with the addition of a new key: "allowed_region": true/false
+    # returns a list of detected objects with the additional key "allowed_region": true/false
     for position in positions:
         position["judge"] = is_allowed(
             position['x'],

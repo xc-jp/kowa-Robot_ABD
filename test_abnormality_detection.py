@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
-# from typing import List
-# from datetime import datetime
+
+# import sys
+# print(sys.path)
 
 import torch
 import numpy as np
@@ -30,7 +31,6 @@ def parse_args() -> argparse.Namespace:
         '--conf_threshold',
         type=float,
         default=0,
-        # required=False,
         help='It must be between 0 and 1')
     return parser.parse_args()
 
@@ -51,6 +51,7 @@ if __name__ == "__main__":
     # pass image and allowed_regions as arguments for judge_image()
     detected_items = abnormality_detection.judge_image(
         model, image_path, allowed_regions, device, conf_threshold)
+    abnormality_detection.judge_distance(detected_items, 300)
     # plot objects' positions in blue/green on the allowed_region map
     output = abnormality_detection.plot_object(detected_items, map)
     output.save('C:/Users/GBM/Downloads/XC/output.png')
