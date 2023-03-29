@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 from datetime import datetime
 import os
 from itertools import combinations
-from operator import itemgetter
 
 import numpy as np
 import torch
@@ -71,64 +70,30 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
-def within_angle_range(angle: float, min_angle: float, max_angle: float) -> bool:
-    return min_angle <= angle <= max_angle
+def within_angle_range(angle: float) -> bool:
+    return angle in [-90, +90]
 
 
-def judge_angle(positions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def judge_angle(positions: List[Dict[str, any]]) -> List[Dict[str, Any]]:
     for position in positions:
         position['judge_angle'] = within_angle_range(position['beta'])
     return positions
 
 
-def Calculate_dist(obj1: Dict[str, Any], obj2: Dict[str, Any]):
-    x1 = object1['x']
-    y1 = object1['y']
-    x2 = object2['x']
-    y2 = object2['y']
-    return sqrt((x1 - x2)**2 + (y1 - y2)**2)
-
-
-def judge_close_objects(
-        positions: List[Dict[str, Any]], limit_dist: float) -> List[tuple[Dict[str, Any], Dict[str, Any], float]]:
-    # returns a list of object pairs that are too close
-    # their actual distance < minimal required distance)
+def judge_distance(positions: List[Dict[str, Any]], limit_dist: float):
+    # translate distance form pixels to another unit?
     pairs = list(combinations(positions, 2))
-    pairs_too_close = []
     for pair in pairs:
-        distance = Calculate_dist(pair[0], pair[1])
-        if distance < limit_dist:
-            l = list(pair)
-            l.append(distance)
-            pair_with_distance = tuple(l)
-            pairs_too_close.append(pair_with_distance)
-        return pairs_too_close
+        x1 = pair[0]['x']
+        y1 = pair[0]['y']
+        x2 = pair[1]['x']
+        y2 = pair[1]['y']
+        actual_dist = sqrt((x1 - x2)**2 + (y1 - y2)**2)
+        print(actual_dist)
+        if actual_dist < limit_dist:
+            print(f"objects at pixel coordinates({x1}, {y1}) and ({x2}, {y2}) are too close")
+            # how to refer to the objects in a better way
 
-
-def judge_safety_distance(positions: List[Dict[str, Any]],
-                          safety_dist: float) -> List[Dict[str, Any]]:
-    # returns the list of objects with two addditional keys:
-    # - bool value for wheteher or not theres an object is in the gap
-    # - coordinates of the closest object
-    duplicate = positions
-    for position in positions:
-        position['safety_distance_violated'] = False
-        newlist = []
-        for j in duplicate:
-            if j != position:
-                distance = Calculate_dist(position, j)
-                j['relative_distance'] = distance
-                newlist.append(j)
-                if distance < safety_dist:
-                    position['safety_distance_violated'] = True
-        newlist_sorted = sorted(newlist, key=itemgetter('relative_distance'))
-        position['closest_object_xy'] = (newlist_sorted[0]['x'], newlist_sorted[0]['y'])
-    return positions
-
-
-# def judge_distances(positions: List[Dict[str, Any]], limit_dist: float) -> List[Dict[str, Any]:
-    # sums up the two
-    # STILL UNDER CONSTRUCTION
 
 
 def judge_positions(positions: List[Dict[str, Any]],
