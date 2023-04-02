@@ -49,10 +49,10 @@ def grasping_inference(model: dict[str, Any], image: Image.Image,
     # It returns a list with the detected objects centers
     # return grasping_infer(model, image, device)
     prediction_points, prediction_image = grasping_infer.infer(
-        model["network"], image, model["input_width"], model["input_height"], device, visualization=False,
+        model["network"], image, model["input_width"], model["input_height"], device, visualization=True,
         dim_mins=model["dim_mins"], dim_maxs=model["dim_maxs"],
     )
-    return prediction_points
+    return prediction_points, prediction_image
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
