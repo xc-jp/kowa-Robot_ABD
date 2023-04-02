@@ -71,17 +71,15 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
-def within_angle_range(angle: float, min_angle: float, max_angle: float) -> bool:
-    return min_angle <= angle <= max_angle
-
-
-def judge_angle(positions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def judge_angle(positions: List[Dict[str, Any]], min_angle: float,
+                max_angle: float) -> List[Dict[str, Any]]:
+    # evaluates whether or not the object's angle is within allowed interval
     for position in positions:
-        position['judge_angle'] = within_angle_range(position['beta'])
+        position['judge_angle'] = min_angle <= position['beta'] <= max_angle
     return positions
 
 
-def Calculate_dist(obj1: Dict[str, Any], obj2: Dict[str, Any]):
+def distance(obj1: Dict[str, Any], obj2: Dict[str, Any]) -> float:
     x1 = object1['x']
     y1 = object1['y']
     x2 = object2['x']
@@ -89,46 +87,59 @@ def Calculate_dist(obj1: Dict[str, Any], obj2: Dict[str, Any]):
     return sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 
-def judge_close_objects(
-        positions: List[Dict[str, Any]], limit_dist: float) -> List[tuple[Dict[str, Any], Dict[str, Any], float]]:
-    # returns a list of object pairs that are too close
-    # their actual distance < minimal required distance)
-    pairs = list(combinations(positions, 2))
-    pairs_too_close = []
-    for pair in pairs:
-        distance = Calculate_dist(pair[0], pair[1])
-        if distance < limit_dist:
-            l = list(pair)
-            l.append(distance)
-            pair_with_distance = tuple(l)
-            pairs_too_close.append(pair_with_distance)
-        return pairs_too_close
+# def judge_close_objects(
+#         positions: List[Dict[str, Any]], limit_dist: float) -> List[tuple[Dict[str, Any], Dict[str, Any], float]]:
+#     # returns a list of object pairs that are too close
+#     # their actual distance < minimal required distance)
+#     pairs = list(combinations(positions, 2))
+#     pairs_too_close = []
+#     for pair in pairs:
+#         distance = Calculate_dist(pair[0], pair[1])
+#         if distance < limit_dist:
+#             l = list(pair)
+#             l.append(distance)
+#             pair_with_distance = tuple(l)
+#             pairs_too_close.append(pair_with_distance)
+#         return pairs_too_close
 
 
-def judge_radius(positions: List[Dict[str, Any]],
-                 safety_dist: float) -> List[Dict[str, Any]]:
-    # returns the list of objects with two addditional keys:
-    # - bool value for wheteher or not theres an object is in the gap
-    # - coordinates of the closest object
-    duplicate = positions
-    for position in positions:
-        position['safety_distance_violated'] = False
-        newlist = []
-        for j in duplicate:
-            if j != position:
-                distance = Calculate_dist(position, j)
-                j['relative_distance'] = distance
-                newlist.append(j)
-                if distance < safety_dist:
-                    position['safety_distance_violated'] = True
-        newlist_sorted = sorted(newlist, key=itemgetter('relative_distance'))
-        position['closest_object_xy'] = (newlist_sorted[0]['x'], newlist_sorted[0]['y'])
-    return positions
+# # badel esm safety_distance w judge_radius
+# def judge_within_radius_range(positions: List[Dict[str, Any]],
+#                  safety_dist: float) -> List[Dict[str, Any]]:
+#     # returns the list of objects with two addditional keys:
+#     # - bool value for wheteher or not theres an object is in the gap
+#     # - coordinates of the closest object
+#     duplicate = positions
+#     for position in positions:
+#         position['safety_distance_violated'] = False
+#         newlist = []
+#         for j in duplicate:
+#             if j != position:
+#                 distance = Calculate_dist(position, j)
+#                 j['relative_distance'] = distance
+#                 newlist.append(j)
+#                 if distance < safety_dist:
+#                     position['safety_distance_violated'] = True
+#         newlist_sorted = sorted(newlist, key=itemgetter('relative_distance'))
+#         position['closest_object_xy'] = (newlist_sorted[0]['x'], newlist_sorted[0]['y'])
+#     return positions
 
 
-# def judge_distances(positions: List[Dict[str, Any]], limit_dist: float) -> List[Dict[str, Any]:
-    # sums up the two: judge_close_objects and judge_radius
-    # ___________________STILL UNDER CONSTRUCTION_________________________
+def judge_within_radius_range(objects: List[Dict[str, Any]], minimum_allowed_separation_distance: float,
+                              maximum_allowed_separation_distance: float) -> List[Dict[str, Any]]:
+    # pairs = list(combinations(objects, 2))
+    for a_index, b_index, pair in combinations(enumerate(objects), 2):
+        d = distance(pair[0], pair[1])
+        if pair[0]["closest_distance"] > d:
+            objects[a_index]["closest_distance"] = d
+        if objects[b_index]["closest_distance"] > d:
+            objects[b_index]["closest_distance"] = d
+    for object in objects:
+        if object["closest_distance"] < minimum_allowed_separation_distance:
+            object["too_close"] = True
+        if object["closest_distance"] > maximum_allowed_separation_distance:
+            object["too_far"] = True
+    return objects
 
 
 def judge_positions(positions: List[Dict[str, Any]],
