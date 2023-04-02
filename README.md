@@ -23,6 +23,6 @@
                 }
             - on Terminal: set PYTHONPATH=.;.\PyTorchGrasping;
 
-WORK STILL UNDER CONSTRUCTION:
+* WORK STILL UNDER CONSTRUCTION:
     - evaluating whether or not objects are in allowed regions
     - outputting a message if an object is outside allowed region
