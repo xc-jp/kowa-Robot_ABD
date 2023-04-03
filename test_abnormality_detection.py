@@ -43,15 +43,16 @@ if __name__ == "__main__":
     model = abnormality_detection.load_model(Path(args.model_path), device)
     image_path = Path(args.image_path)
     conf_threshold = args.conf_threshold
-    map = Image.open('C:/Users/GBM/Downloads/XC/map.png')
-    map_greyscale = map.convert('L')
+    map_ = Image.open(args.allowed_regions)
+    map_greyscale = map_.convert('L')
     allowed_regions = np.asarray(map_greyscale)
     allowed_regions = allowed_regions.T
 
     # pass image and allowed_regions as arguments for judge_image()
     detected_items = abnormality_detection.judge_image(
         model, image_path, allowed_regions, device, conf_threshold)
-    abnormality_detection.judge_distance(detected_items, 300)
+    juding = abnormality_detection.judge_within_radius_range(detected_items, 100, 300)
+    print(juding[:10])
     # plot objects' positions in blue/green on the allowed_region map
-    output = abnormality_detection.plot_object(detected_items, map)
+    output = abnormality_detection.plot_object(detected_items, map_)
     output.save('C:/Users/GBM/Downloads/XC/output.png')
