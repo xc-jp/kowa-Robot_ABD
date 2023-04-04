@@ -12,7 +12,7 @@
 * Necessary Presets:
     * Data acquisition: model and sample image files are available on XC's NAS server:
         - Grasping Model: \\192.168.100.95\pub\A4_Kowa-Optronics\6_2D_picking\mlserver_test\kowa_infer.zip
-        _PS_: The user needs to unzip the file and the model path should point to the "grasping" folder
+        - _PS_: The user needs to unzip the file and the model path should point to the "grasping" folder
     * PyTorchGrasping submodule:
         - add https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 as submodule
         - install https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 requirements
