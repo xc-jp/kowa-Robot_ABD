@@ -4,7 +4,7 @@
  Implementing a python script (test_abnormality_detection.py) that receives as input arguments:
     - the trained 2D picking model path
     - the objects' image that is subject for evaluation (normally a camera shot showing objects in the working scene)
-    - the allowed regions' image, which is used as reference map for identifying the prohibited and allowed zones for the objects; this map is a B&W image where white pixels indicate the allowed regions.
+    - the allowed regions' image, which is used as reference map for identifying the prohibited and allowed zones for the objects; this map is a B&W image where white pixels indicate the allowed regions on the scene
 * Destined output:
     - returning (and printing) the grasping_inference results as output: a list of dictionaries, where each dictionary refers to a detected object; main object details: coordinates xy, angle, and judgement of the position: inside/outside allowed region (in boolean value)
     - visualizing the detected objects on the allowed_regions map, and saving this visualization as an Image file.
