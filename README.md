@@ -12,16 +12,17 @@
 * Necessary Presets:
     * Data acquisition: model and sample image files are available on XC's NAS server:
         - Grasping Model: \\192.168.100.95\pub\A4_Kowa-Optronics\6_2D_picking\mlserver_test\kowa_infer.zip
-        - _PS_: The user needs to unzip the file and the model path should point to the "grasping" folder
+        - _PS_: The user needs to unzip the file, and the model path should point to the "grasping" folder
     * PyTorchGrasping submodule:
         - add https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 as submodule
+        - initialize the submodule after cloning the project: `git submodule update --init --recursive`
         - install https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 requirements
-        - set the Python Path for including the submodule on the interpreter:
+        - set PythonPath for including the submodule on the interpreter:
             - on Terminal: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Windows DOS: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Powershell: `$env:PYTHONPATH+='.;.\PyTorchGrasping'`
             - on Ubuntu or Mac terminal: `export PYTHONPATH=.:./PyTorchGrasping:`
-        - run the script as the following example: `python .\test_abnormality_detection.py \kowa_infer\grasping test_images\test_images\00000001_clear_center.jpg .allowed_regions_sample.png --gpu cuda`
+        - run the script as the following example: `python .\test_abnormality_detection.py \kowa_infer\grasping test_images\test_images\00000001_clear_center.jpg .allowed_regions_sample.png --gpu`
 * WORK STILL UNDER CONSTRUCTION:
     - evaluating whether or not objects are in allowed regions
     - outputting a message if an object is outside allowed region
