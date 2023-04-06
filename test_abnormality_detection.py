@@ -24,28 +24,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('allowed_regions', type=str, help='Path to an image describing the allowed regions.'
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
+    parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    # TODO install pytorch with cuda supported
-    device = torch.device('cuda')
-    grasping_model = abnormality_detection.load_model(Path(args.model_path), device)
-    # print(grasping_model)
-    image_png = Image.open(args.image_path)
-    print(type(image_png))
 
-    background = Image.new('RGBA', image_png.size, (255, 255, 255))
-    alpha_composite = Image.alpha_composite(background, image_png)
-    # if you check the matrix dimension, channel, it would be still 4.
-    # h, w, channel = np.asarray(alpha_composite)
-    alpha_composite_3 = alpha_composite.convert('RGB')
-    print(type(alpha_composite_3))
+    # select type of device
+    device = torch.device('cuda') if args.gpu else torch.device('cpu')
+
+    # load grasping model
+    grasping_model = abnormality_detection.load_model(Path(args.model_path), device)
+
+    # load input image from argument (converted from RGBA to RGB)
+    image = Image.open(args.image_path).convert('RGB')
 
     # call grasping inference and print what's been returned
     detected_objects, visualization_results = abnormality_detection.grasping_inference(
-        grasping_model, alpha_composite_3, device)
+        grasping_model, image, device)
     print(detected_objects)
     visualization_results.show()
     # OR TODO passing image and allowed_regions as arguments for judge_image()
