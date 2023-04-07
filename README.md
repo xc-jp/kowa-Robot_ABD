@@ -14,7 +14,6 @@
         - Grasping Model: \\192.168.100.95\pub\A4_Kowa-Optronics\6_2D_picking\mlserver_test\kowa_infer.zip
         - _PS_: The user needs to unzip the file, and the model path should point to the "grasping" folder
     * PyTorchGrasping submodule:
-        - add https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 as submodule
         - initialize the submodule after cloning the project: `git submodule update --init --recursive`
         - install https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 requirements
         - set PythonPath for including the submodule on the interpreter:
