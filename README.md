@@ -21,7 +21,11 @@
             - on Windows DOS: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Powershell: `$env:PYTHONPATH+='.;.\PyTorchGrasping'`
             - on Ubuntu or Mac terminal: `export PYTHONPATH=.:./PyTorchGrasping:`
-        - run the script as the following example: `python .\test_abnormality_detection.py \kowa_infer\grasping test_images\test_images\00000001_clear_center.jpg .allowed_regions_sample.png --gpu`
+        - run the script as the following examples:
+          - No GPU: `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png`
+          - With GPU (you must have cuda installed on your environment): `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png --gpu`
+
+
 * WORK STILL UNDER CONSTRUCTION:
     - evaluating whether or not objects are in allowed regions
     - outputting a message if an object is outside allowed region
