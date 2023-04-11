@@ -17,7 +17,6 @@
         - initialize the submodule after cloning the project: `git submodule update --init --recursive`
         - install https://github.com/xc-jp/PyTorchGrasping/tree/kowa/v1.2.1 requirements `pip install -r  .\PyTorchGrasping\requirements.txt`
         - set PythonPath for including the submodule on the interpreter:
-            - on Terminal: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Windows DOS: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Powershell: `$env:PYTHONPATH+='.;.\PyTorchGrasping'`
             - on Ubuntu or Mac terminal: `export PYTHONPATH=.:./PyTorchGrasping:`
