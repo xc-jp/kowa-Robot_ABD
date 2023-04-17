@@ -6,9 +6,10 @@
     - the objects' image that is subject for evaluation (normally a camera shot showing objects in the working scene)
     - the allowed regions' image, which is used as reference map for identifying the prohibited and allowed zones for the objects; this map is a B&W image where white pixels indicate the allowed regions on the scene
 * Destined output:
-    - returning (and printing) the grasping_inference results as output: a list of dictionaries, where each dictionary refers to a detected object; main object details: coordinates xy, angle, and judgement of the position: inside/outside allowed region (in boolean value)
-    - visualizing the detected objects on the allowed_regions map, and saving this visualization as an Image file.
-
+    - returning the judge_image results as output: a list of dictionaries, where each dictionary refers to an object detected by the 2D picking model (call of grasping_inference inside judge_image), with their visualization image; main object details: coordinates xy, angle, and judgement of the position: inside/outside allowed region (in boolean value)
+    - saving the visualization as an Image file on the same folder as the input, under the format "inputImagePath_timestamp.jpg"
+    - printing the list of objects that are outside the allowed region.
+    
 * Necessary Presets:
     * Data acquisition: model and sample image files are available on XC's NAS server:
         - Grasping Model: \\192.168.100.95\pub\A4_Kowa-Optronics\6_2D_picking\mlserver_test\kowa_infer.zip
