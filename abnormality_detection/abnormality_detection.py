@@ -65,14 +65,13 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
 
 
 def judge_positions(positions: List[Dict[str, Any]],
-                    allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
-    # returns a list with the positions with the addition of a new key: "allowed_region": true/false
+                    allowed_regions: np.ndarray) -> None:
+    # Modifies in-place the items of a list containing the detected positions, adding a new key: "allowed_region": True/False
     for position in positions:
-        position["judge"] = is_allowed(
+        position["inside_allowed_region"] = is_allowed(
             position['x'],
             position['y'],
             allowed_regions)
-    return positions
 
 
 def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
