@@ -66,7 +66,8 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
 
 def judge_positions(positions: List[Dict[str, Any]],
                     allowed_regions: np.ndarray) -> None:
-    # Modifies in-place the items of a list containing the detected positions, adding a new key: "allowed_region": True/False
+    # Modifies in-place the items of a list containing the detected positions,
+    # adding a new key: "inside_allowed_region": True/False
     for position in positions:
         position["inside_allowed_region"] = is_allowed(
             position['x'],
