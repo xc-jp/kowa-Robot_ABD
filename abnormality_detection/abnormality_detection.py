@@ -60,7 +60,7 @@ def grasping_inference(model: dict[str, Any], image: Image.Image,
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     # evaluates whether or not the object is outside allowed area
     # returns true  if the coordinates is inside allowed region, false otherwise
-    # allowed_regions is a B&W image (ideally 0-1 values), 0 for allowed coordinates
+    # allowed_regions is a B&W image (ideally 0-1 values), 1 for allowed coordinates
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
