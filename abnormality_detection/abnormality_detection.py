@@ -81,4 +81,5 @@ def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.n
     # call grasping inference
     detected_objects, visualization = grasping_inference(model, image, device)
 
-    return judge_positions(detected_objects, allowed_regions), visualization
+    judge_positions(detected_objects, allowed_regions)
+    return detected_objects, visualization
