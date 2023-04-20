@@ -58,5 +58,5 @@ if __name__ == "__main__":
 
     for object in detected_items:
         #  if object is outside allowed region, print its information
-        if object["judge"] == False:
+        if object["inside_allowed_region"] == False:
             print(object)
