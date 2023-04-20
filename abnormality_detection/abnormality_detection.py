@@ -1,7 +1,9 @@
-"""Module Description."""
+"""Module Description"""
+from typing import Any, Dict, List
 import json
 from pathlib import Path
-from typing import Any
+# from typing import Any
+
 
 import numpy as np
 import torch
@@ -56,21 +58,28 @@ def grasping_inference(model: dict[str, Any], image: Image.Image,
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
-    # TODO implement method
-    # It should return true  if the coordinates is inside allowed region, false otherwise
-    # i'm not sure how the map looks like, or how allowed regions are recognized, so as a first solution,
-    # i'm assuming that the ndarray is a representation of the map with NaN
-    # values for unallowed coordinates
-    return allowed_regions[round(x)][round(y)] != np.NaN
+    # evaluates whether or not the object is outside allowed area
+    # returns true  if the coordinates is inside allowed region, false otherwise
+    # allowed_regions is a B&W image (ideally 0-1 values), 1 for allowed coordinates
+    return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
-def judge_positions(positions: dict[str, Any], allowed_regions: np.ndarray) -> list[dict[str, Any]]:
-    # TODO implement method
-    # It should return a list with the positions with the addition of a new key: "allowed_region": true/false
-    raise NotImplementedError
+def judge_positions(positions: List[Dict[str, Any]],
+                    allowed_regions: np.ndarray) -> None:
+    # Modifies in-place the items of a list containing the detected positions,
+    # adding a new key: "inside_allowed_region": True/False
+    for position in positions:
+        position["inside_allowed_region"] = is_allowed(
+            position['x'],
+            position['y'],
+            allowed_regions)
 
 
-def judge_image(model: dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device,
-                ) -> list[dict[str, Any]]:
-    detected_objects = grasping_inference(model, image, device)
-    return judge_positions(detected_objects, allowed_regions)
+def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
+                ) -> List[Dict[str, Any]]:
+
+    # call grasping inference
+    detected_objects, visualization = grasping_inference(model, image, device)
+
+    judge_positions(detected_objects, allowed_regions)
+    return detected_objects, visualization
