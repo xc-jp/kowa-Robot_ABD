@@ -1,7 +1,9 @@
 """Module Description"""
 from typing import Any, Dict, List
+import json
 from datetime import datetime
 import os
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -9,8 +11,6 @@ from PIL import Image, ImageDraw
 
 from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
-from pathlib import Path
-import json
 
 
 def load_model(model_path: Path, device: torch.device) -> Dict[str, Any]:
@@ -22,7 +22,6 @@ def load_model(model_path: Path, device: torch.device) -> Dict[str, Any]:
 
 def _load_grasping(
         path: Path, build_parameters: Dict[str, Any], device: torch.device) -> Dict[str, Any]:
-    # loads the grasping model from the device
     input_width = build_parameters['input_width']
     input_height = build_parameters['input_height']
     nb_classes = build_parameters['nb_classes']
@@ -48,50 +47,47 @@ def _load_grasping(
 
 def grasping_inference(model: Dict[str, Any], image: Image.Image,
                        device: torch.device, conf_threshold=0) -> List[Dict[str, Any]]:
-    # calls Grasping Inference
-    # returns a list with the detected objects' centers
-    prediction_points, visualization_results = grasping_infer.infer(
+    # implement Grasping Inference Call
+    # It returns a list with the detected objects centers, satisfying input threshold
+    # return grasping_infer(model, image, device)
+    prediction_points, prediction_image = grasping_infer.infer(
         model['network'], image, model['input_width'], model['input_height'], device, visualization=True,
         dim_mins=model['dim_mins'], dim_maxs=model['dim_maxs']
     )
-    new_list = []
-    for point in prediction_points:
-        if point['confidence'] >= conf_threshold:
-            new_list.append(point)
-    return new_list, visualization_results
+    new_list = [
+        point
+        for point in prediction_points
+        if point['confidence'] >= conf_threshold
+    ]
+    return new_list, prediction_image
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     # evaluates whether or not the object is outside allowed area
     # returns true  if the coordinates is inside allowed region, false otherwise
-    # allowed_regions is a B&W image (ideally 0-1 values), 0 for allowed coordinates
+    # allowed_regions is a B&W image (ideally 0-1 values), 1 for allowed coordinates
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
 def judge_positions(positions: List[Dict[str, Any]],
-                    allowed_regions: np.ndarray) -> List[Dict[str, Any]]:
-    # returns a list with the positions with the addition of a new key: "allowed_region": true/false
+                    allowed_regions: np.ndarray) -> None:
+    # Modifies in-place the items of a list containing the detected positions,
+    # adding a new key: "inside_allowed_region": True/False
     for position in positions:
-        position["judge"] = is_allowed(
+        position["inside_allowed_region"] = is_allowed(
             position['x'],
             position['y'],
             allowed_regions)
-    return positions
 
 
-def judge_image(model: Dict[str, Any], image_path: Path, allowed_regions: np.ndarray,
-                device: torch.device, conf_threshold: float = 0) -> List[Dict[str, Any]]:
-    image = Image.open(image_path)
-    # call the grasping inference function and return the objects' list
-    detected_objects, visualization = grasping_inference(model, image, device, conf_threshold)
+def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
+                ) -> List[Dict[str, Any]]:
 
-    # save visualization_results as inputimage_timestamp.jpg format (under same path as the image)
-    dt = datetime.now()
-    ts = str(datetime.timestamp(dt))
-    no_extension = os.path.splitext(image_path)[0]
-    # visualization_results.show()
-    visualization.save(f"{no_extension}_{ts}.jpg")
-    return judge_positions(detected_objects, allowed_regions)
+    # call grasping inference
+    detected_objects, visualization = grasping_inference(model, image, device)
+
+    judge_positions(detected_objects, allowed_regions)
+    return detected_objects, visualization
 
 
 def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.Image):
