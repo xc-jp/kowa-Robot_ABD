@@ -95,7 +95,7 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
     for item in judged_items:
         x = round(item['x']) - 1
         y = round(item['y']) - 1
-        if item['judge']:
+        if item['inside_allowed_region']:
             # mark position in blue
             draw.regular_polygon((x, y, 3), 6, rotation=0, fill='blue', outline=None)
         else:
