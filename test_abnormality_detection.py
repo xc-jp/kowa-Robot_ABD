@@ -65,6 +65,11 @@ if __name__ == "__main__":
     # visualization_results.show()
     visualization.save(f"{no_extension}_{ts}.jpg")
 
+    for object in detected_items:
+        #  if object is outside allowed region, print its information
+        if object["inside_allowed_region"] == False:
+            print(object)
+
     # plot objects' positions in blue/green on the allowed_region map
     output = abnormality_detection.plot_object(detected_items, map_rgb)
     output.save('C:/Users/GBM/Downloads/XC/output.png')
