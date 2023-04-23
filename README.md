@@ -6,14 +6,15 @@
     - the objects' image that is subject for evaluation (normally a camera shot showing objects in the working scene)
     - the allowed regions' image, which is used as reference map for identifying the prohibited and allowed zones for the objects; this map is a B&W image where white pixels indicate the allowed regions on the scene
 * Destined output:
-    - returning the judge_image results as output: a list of dictionaries, where each dictionary refers to an object detected by the 2D picking model (call of grasping_inference inside judge_image), with their visualization image;
+    - returning the judge_image results as output: a list of dictionaries that satisfy the input threshold, where each dictionary refers to an object detected by the 2D picking model (call of grasping_inference inside judge_image), with their visualization image;
     main object details:
         - coordinates: 'x' and 'y'
         - orientation angle: 'beta'
         - confidence rate of model's object detection: 'confidence'
         - judgement of the position: 'inside_allowed_region' (in boolean value)
     - saving the visualization as an Image file on the same folder as the input, under the format "inputImagePath_timestamp.jpg"
-    - printing the list of objects that are outside the allowed region.
+    - printing the list of objects that are outside the allowed region
+    - plotting the detected items' centers on the map with colorcoding (in blue if inside allowed region, else in red)
     
 * Necessary Presets:
     * Data acquisition: model and sample image files are available on XC's NAS server:
@@ -26,11 +27,12 @@
             - on Windows DOS: `set PYTHONPATH=.;.\PyTorchGrasping;`
             - on Powershell: `$env:PYTHONPATH+='.;.\PyTorchGrasping'`
             - on Ubuntu or Mac terminal: `export PYTHONPATH=.:./PyTorchGrasping:`
-        - run the script as the following examples:
-          - No GPU: `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png`
-          - With GPU (you must have cuda installed on your environment): `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png --gpu`
+* Running the script:
+    * run the script as the following examples:
+        - No GPU: `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png --conf_threshold <value>`
+        - With GPU (you must have cuda installed on your environment): `python .\test_abnormality_detection.py <path\to\>\kowa_infer\grasping .\samples\test_images\00000001_clear_center.jpg .\samples\allowed_regions.png --gpu --conf_threshold <value>`
 
 
 * WORK STILL UNDER CONSTRUCTION:
-    - evaluating whether or not objects are in allowed regions
-    - outputting a message if an object is outside allowed region
+    - judging the angle of inclination for each object
+    - judging the relative distance between objects
