@@ -1,9 +1,8 @@
 """Module Description"""
 from typing import Any, Dict, List
 import json
-from datetime import datetime
-import os
 from pathlib import Path
+
 
 import numpy as np
 import torch
@@ -13,52 +12,47 @@ from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
 
 
-def load_model(model_path: Path, device: torch.device) -> Dict[str, Any]:
-    # loads pytorch model weights
-    with open(model_path.joinpath('obj', 'build_parameter.json'), encoding='utf-8') as f:
+def load_model(model_path: Path, device: torch.device) -> dict[str, Any]:
+    # TODO load pytorch model weights
+    with open(model_path.joinpath("obj", "build_parameter.json"), encoding="utf-8") as f:
         build_parameters = json.load(f)
     return _load_grasping(model_path, build_parameters, device)
 
 
 def _load_grasping(
-        path: Path, build_parameters: Dict[str, Any], device: torch.device) -> Dict[str, Any]:
-    input_width = build_parameters['input_width']
-    input_height = build_parameters['input_height']
-    nb_classes = build_parameters['nb_classes']
-    subdivs = build_parameters['subdivs']
-    network_name = build_parameters['network']
-    dim_mins = tuple(build_parameters['dim_mins'])
-    dim_maxs = tuple(build_parameters['dim_maxs'])
+        path: Path, build_parameters: dict[str, Any], device: torch.device) -> dict[str, Any]:
+    input_width = build_parameters["input_width"]
+    input_height = build_parameters["input_height"]
+    nb_classes = build_parameters["nb_classes"]
+    subdivs = build_parameters["subdivs"]
+    network_name = build_parameters["network"]
+    dim_mins = tuple(build_parameters["dim_mins"])
+    dim_maxs = tuple(build_parameters["dim_maxs"])
 
-    network_path = path.joinpath('obj', 'model.pth')
+    network_path = path.joinpath("obj", "model.pth")
     network = build_grasping_model(network_name, model_path=network_path, eval_mode=True,
                                    image_sizes=(input_height, input_width), nb_classes=nb_classes, subdivs=subdivs)
     network = network.to(device)
 
     return {
-        'method': 'grasping',
-        'network': network,
-        'input_width': input_width,
-        'input_height': input_height,
-        'dim_mins': dim_mins,
-        'dim_maxs': dim_maxs,
+        "method": "grasping",
+        "network": network,
+        "input_width": input_width,
+        "input_height": input_height,
+        "dim_mins": dim_mins,
+        "dim_maxs": dim_maxs,
     }
 
 
-def grasping_inference(model: Dict[str, Any], image: Image.Image,
-                       device: torch.device, conf_threshold=0) -> List[Dict[str, Any]]:
+def grasping_inference(model: dict[str, Any], image: Image.Image, device: torch.device, conf_threshold: float = 0
+                       ) -> tuple[list[dict[str, Any]], Image.Image]:
     # implement Grasping Inference Call
     # It returns a list with the detected objects centers, satisfying input threshold
     # return grasping_infer(model, image, device)
     prediction_points, prediction_image = grasping_infer.infer(
-        model['network'], image, model['input_width'], model['input_height'], device, visualization=True,
-        dim_mins=model['dim_mins'], dim_maxs=model['dim_maxs']
-    )
-    new_list = [
-        point
-        for point in prediction_points
-        if point['confidence'] >= conf_threshold
-    ]
+        model["network"], image, model["input_width"], model["input_height"], device, visualization=True,
+        dim_mins=model["dim_mins"], dim_maxs=model["dim_maxs"])
+    new_list = [point for point in prediction_points if point["confidence"] >= conf_threshold]
     return new_list, prediction_image
 
 

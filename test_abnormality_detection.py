@@ -64,6 +64,7 @@ if __name__ == "__main__":
     no_extension = os.path.splitext(args.image_path)[0]
     # visualization_results.show()
     visualization.save(f"{no_extension}_{ts}.jpg")
+    print(f"Grasping visualization saved at: {no_extension}_{ts}.jpg")
 
     for object in detected_items:
         #  if object is outside allowed region, print its information
@@ -72,4 +73,5 @@ if __name__ == "__main__":
 
     # plot objects' positions in blue/green on the allowed_region map
     output = abnormality_detection.plot_object(detected_items, map_rgb)
-    output.save('C:/Users/GBM/Downloads/XC/output.png')
+    output.save(f"{no_extension}_allowed_regions_{ts}.png")
+    print(f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
