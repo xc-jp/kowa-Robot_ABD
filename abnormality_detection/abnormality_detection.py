@@ -2,12 +2,11 @@
 from typing import Any, Dict, List
 import json
 from pathlib import Path
-# from typing import Any
 
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
@@ -45,16 +44,17 @@ def _load_grasping(
     }
 
 
-def grasping_inference(model: dict[str, Any], image: Image.Image,
-                       device: torch.device) -> dict[str, Any]:
+def grasping_inference(model: dict[str, Any], image: Image.Image, device: torch.device, conf_threshold: float = 0
+                       ) -> tuple[list[dict[str, Any]], Image.Image]:
     # implement Grasping Inference Call
-    # It returns a list with the detected objects centers
+    # It returns a list with the detected objects centers, satisfying input threshold
     # return grasping_infer(model, image, device)
     prediction_points, prediction_image = grasping_infer.infer(
         model["network"], image, model["input_width"], model["input_height"], device, visualization=True,
-        dim_mins=model["dim_mins"], dim_maxs=model["dim_maxs"],
-    )
-    return prediction_points, prediction_image
+        dim_mins=model["dim_mins"], dim_maxs=model["dim_maxs"])
+    filtered_prediction_points = [
+        point for point in prediction_points if point["confidence"] >= conf_threshold]
+    return filtered_prediction_points, prediction_image
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
@@ -75,11 +75,24 @@ def judge_positions(positions: List[Dict[str, Any]],
             allowed_regions)
 
 
-def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
+def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device, conf_threshold: float = 0
                 ) -> List[Dict[str, Any]]:
-
     # call grasping inference
-    detected_objects, visualization = grasping_inference(model, image, device)
-
+    detected_objects, visualization = grasping_inference(
+        model, image, device, conf_threshold=conf_threshold)
     judge_positions(detected_objects, allowed_regions)
     return detected_objects, visualization
+
+
+def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.Image):
+    draw = ImageDraw.Draw(allowed_regions_rgb)
+    for item in judged_items:
+        x = round(item['x']) - 1
+        y = round(item['y']) - 1
+        if item['inside_allowed_region']:
+            # mark position in blue
+            draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill='blue', outline=None)
+        else:
+            # mark position in red
+            draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill='red', outline=None)
+    return allowed_regions_rgb

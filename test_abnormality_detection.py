@@ -28,6 +28,11 @@ def parse_args() -> argparse.Namespace:
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
     parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
+    parser.add_argument(
+        '--conf_threshold',
+        type=float,
+        default=0,
+        help='It must be between 0 and 1')
     return parser.parse_args()
 
 
@@ -41,13 +46,14 @@ if __name__ == "__main__":
     # load input image (convert from RGBA to RGB)
     image = Image.open(args.image_path).convert('RGB')
     # load allowed_regions map
-    map_ = Image.open(args.allowed_regions).convert('L')
-    allowed_regions = np.asarray(map_)
+    allowed_regions_img = Image.open(args.allowed_regions)
+    allowed_regions = np.asarray(allowed_regions_img.convert('L'))
     allowed_regions = allowed_regions.T
 
+    # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions
     detected_items, visualization = abnormality_detection.judge_image(
-        model, image, allowed_regions, device)
+        model, image, allowed_regions, device, conf_threshold=args.conf_threshold)
 
     # save visualization_results under format inputImagePath_timestamp.jpg
     dt = datetime.now()
@@ -55,8 +61,14 @@ if __name__ == "__main__":
     no_extension = os.path.splitext(args.image_path)[0]
     # visualization_results.show()
     visualization.save(f"{no_extension}_{ts}.jpg")
+    print(f"Grasping visualization saved at: {no_extension}_{ts}.jpg")
 
     for object in detected_items:
         #  if object is outside allowed region, print its information
         if object["inside_allowed_region"] == False:
             print(object)
+
+    # plot objects' positions in blue/green on the allowed_region map
+    output = abnormality_detection.plot_object(detected_items, allowed_regions_img)
+    output.save(f"{no_extension}_allowed_regions_{ts}.png")
+    print(f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
