@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions
     detected_items, visualization = abnormality_detection.judge_image(
-        model, image, allowed_regions, device)
+        model, image, allowed_regions, device, conf_threshold=args.conf_threshold)
 
     # save visualization_results under format inputImagePath_timestamp.jpg
     dt = datetime.now()

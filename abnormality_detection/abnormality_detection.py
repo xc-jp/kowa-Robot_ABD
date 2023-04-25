@@ -75,12 +75,11 @@ def judge_positions(positions: List[Dict[str, Any]],
             allowed_regions)
 
 
-def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device
+def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device, conf_threshold: float = 0
                 ) -> List[Dict[str, Any]]:
-
     # call grasping inference
-    detected_objects, visualization = grasping_inference(model, image, device)
-
+    detected_objects, visualization = grasping_inference(
+        model, image, device, conf_threshold=conf_threshold)
     judge_positions(detected_objects, allowed_regions)
     return detected_objects, visualization
 
