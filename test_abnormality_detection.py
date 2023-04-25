@@ -49,8 +49,6 @@ if __name__ == "__main__":
     allowed_regions_img = Image.open(args.allowed_regions)
     allowed_regions = np.asarray(allowed_regions_img.convert('L'))
     allowed_regions = allowed_regions.T
-    # load confidence threshold
-    conf_threshold = args.conf_threshold
 
     # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions
