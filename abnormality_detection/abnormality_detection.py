@@ -52,8 +52,9 @@ def grasping_inference(model: dict[str, Any], image: Image.Image, device: torch.
     prediction_points, prediction_image = grasping_infer.infer(
         model["network"], image, model["input_width"], model["input_height"], device, visualization=True,
         dim_mins=model["dim_mins"], dim_maxs=model["dim_maxs"])
-    new_list = [point for point in prediction_points if point["confidence"] >= conf_threshold]
-    return new_list, prediction_image
+    filtered_prediction_points = [
+        point for point in prediction_points if point["confidence"] >= conf_threshold]
+    return filtered_prediction_points, prediction_image
 
 
 def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
