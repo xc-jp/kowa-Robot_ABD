@@ -46,9 +46,8 @@ if __name__ == "__main__":
     # load input image (convert from RGBA to RGB)
     image = Image.open(args.image_path).convert('RGB')
     # load allowed_regions map
-    map_ = Image.open(args.allowed_regions).convert('L')
-    map_rgb = Image.open(args.allowed_regions)
-    allowed_regions = np.asarray(map_)
+    allowed_regions_img = Image.open(args.allowed_regions)
+    allowed_regions = np.asarray(allowed_regions_img.convert('L'))
     allowed_regions = allowed_regions.T
     # load confidence threshold
     conf_threshold = args.conf_threshold
@@ -72,6 +71,6 @@ if __name__ == "__main__":
             print(object)
 
     # plot objects' positions in blue/green on the allowed_region map
-    output = abnormality_detection.plot_object(detected_items, map_rgb)
+    output = abnormality_detection.plot_object(detected_items, allowed_regions_img)
     output.save(f"{no_extension}_allowed_regions_{ts}.png")
     print(f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
