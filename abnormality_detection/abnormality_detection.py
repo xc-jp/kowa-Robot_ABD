@@ -100,7 +100,8 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
 
 
 def create_allowed_regions(video: list[np.ndarray], radius: int = 0, dimensions: Optional[list[int]] = None,
-                           shape_mask: Optional[np.ndarray] = None) -> np.ndarray:  # type: ignore
+                           shape_mask: Optional[np.ndarray] = None, model: dict[str, Any], device: torch.device,
+                           conf_threshold: float = 0) -> np.ndarray:
     # UNDER CONSTRUCTION ...
     initial_map = np.zeros((391, 568))
     cap = cv2.VideoCapture(video)
