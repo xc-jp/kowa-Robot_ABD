@@ -101,7 +101,6 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
 def create_allowed_regions(video: list[np.ndarray], radius: int = 0, dimensions: Optional[list[int]] = None,
                            shape_mask: Optional[np.ndarray] = None) -> np.ndarray:  # type: ignore
     # TODO
-    # for now, i defined the mask shape as equal to the allowed_region map
     pass
 
 
