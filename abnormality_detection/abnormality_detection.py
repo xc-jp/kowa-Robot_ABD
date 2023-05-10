@@ -2,6 +2,7 @@
 from typing import Any, Dict, List, Optional
 import json
 from pathlib import Path
+import cv2
 
 
 import numpy as np
@@ -100,8 +101,28 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
 
 def create_allowed_regions(video: list[np.ndarray], radius: int = 0, dimensions: Optional[list[int]] = None,
                            shape_mask: Optional[np.ndarray] = None) -> np.ndarray:  # type: ignore
-    # TODO
-    pass
+    # UNDER CONSTRUCTION ...
+    initial_map = np.zeros((391, 568))
+    cap = cv2.VideoCapture(video)
+    if not cap.isOpened():
+        print("Error opening video file!")
+        exit(0)
+
+    print('Video properties are being captured..')  # just in case
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = width = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    while cap.isOpened():
+        status, frame = cap.read()
+        if status:
+            # opencv stores color channels in BGR, so we need to reorder them to RGB
+            img = frame[:, :, (2, 1, 0)]
+            print(img.type)  # just to check if its an Image.Image
+            objects_in_frame, _ = grasping_inference(model, img, device, conf_threshold)
+        else:
+            break
+
 
 
 def update_allowed_regions(allowed_regions: np.ndarray, position: tuple[int, int], radius: int = 0, dimensions: Optional[
