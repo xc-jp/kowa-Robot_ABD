@@ -1,5 +1,5 @@
 """Module Description"""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import json
 from pathlib import Path
 
@@ -96,3 +96,16 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
             # mark position in red
             draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill='red', outline=None)
     return allowed_regions_rgb
+
+
+def create_allowed_regions(video: list[np.ndarray], radius: int = 0, dimensions: Optional[list[int]] = None,
+                           shape_mask: Optional[np.ndarray] = None) -> np.ndarray:  # type: ignore
+    # TODO
+    # for now, i defined the mask shape as equal to the allowed_region map
+    pass
+
+
+def update_allowed_regions(allowed_regions: np.ndarray, position: tuple[int, int], radius: int = 0, dimensions: Optional[
+                           list[int]] = None, shape_mask: Optional[np.ndarray] = None, angle: Optional[float] = None) -> None:
+    # TODO
+    pass
