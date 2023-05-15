@@ -1,8 +1,7 @@
 import argparse
+from datetime import datetime
+import os
 from pathlib import Path
-
-# import sys
-# print(sys.path)
 
 import torch
 import numpy as np
@@ -27,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('allowed_regions', type=str, help='Path to an image describing the allowed regions.'
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
+    parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
     parser.add_argument(
         '--conf_threshold',
         type=float,
@@ -37,22 +37,40 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    device = torch.device('cuda')
+    # select type of device
+    device = torch.device('cuda') if args.gpu else torch.device('cpu')
 
-    # loading model, image, and allowed_regions
+    # load grasping model
     model = abnormality_detection.load_model(Path(args.model_path), device)
-    image_path = Path(args.image_path)
-    conf_threshold = args.conf_threshold
-    map_ = Image.open(args.allowed_regions)
-    map_greyscale = map_.convert('L')
-    allowed_regions = np.asarray(map_greyscale)
+    # load input image (convert from RGBA to RGB)
+    image = Image.open(args.image_path).convert('RGB')
+    # load allowed_regions map
+    allowed_regions_img = Image.open(args.allowed_regions)
+    allowed_regions = np.asarray(allowed_regions_img.convert('L'))
     allowed_regions = allowed_regions.T
 
     # pass image and allowed_regions as arguments for judge_image()
-    detected_items = abnormality_detection.judge_image(
-        model, image_path, allowed_regions, device, conf_threshold)
+    # judge image according to allowed_regions
+    detected_items, visualization = abnormality_detection.judge_image(
+        model, image, allowed_regions, device, conf_threshold=args.conf_threshold)
+
     juding = abnormality_detection.judge_within_radius_range(detected_items, 100, 300)
     print(juding[:10])
+
+    # save visualization_results under format inputImagePath_timestamp.jpg
+    dt = datetime.now()
+    ts = str(datetime.timestamp(dt))
+    no_extension = os.path.splitext(args.image_path)[0]
+    # visualization_results.show()
+    visualization.save(f"{no_extension}_{ts}.jpg")
+    print(f"Grasping visualization saved at: {no_extension}_{ts}.jpg")
+
+    for object in detected_items:
+        #  if object is outside allowed region, print its information
+        if object["inside_allowed_region"] == False:
+            print(object)
+
     # plot objects' positions in blue/green on the allowed_region map
-    output = abnormality_detection.plot_object(detected_items, map_)
-    output.save('C:/Users/GBM/Downloads/XC/output.png')
+    output = abnormality_detection.plot_object(detected_items, allowed_regions_img)
+    output.save(f"{no_extension}_allowed_regions_{ts}.png")
+    print(f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
