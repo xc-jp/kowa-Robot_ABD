@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 import json
 from pathlib import Path
 import cv2
+import imutils
 
 
 import numpy as np
@@ -151,11 +152,13 @@ def update_allowed_regions(allowed_regions: np.ndarray, position: tuple[int, int
     if shape_mask:
         if not angle:
             raise ValueError
-        cv2.drawContours(allowed_regions, shape_mask, 0, 255, cv2.FILLED)
+        rotated_shape_mask = imutils.rotate(shape_mask, angle)
+        cv2.drawContours(allowed_regions, position, rotated_shape_mask, 0, 255, cv2.FILLED)
     elif dimensions:
         if not angle:
             raise ValueError
-        cv2.drawContours(allowed_regions, dimensions, 0, 255, cv2.FILLED) 
+        rotated_dimensions = imutils.rotate(dimensions, angle)
+        cv2.drawContours(allowed_regions, position, rotated_dimensions, 0, 255, cv2.FILLED)
     elif radius > 0:
         cv2.circle(allowed_regions, position, radius, 255, thickness=cv2.FILLED)
                
