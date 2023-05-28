@@ -28,11 +28,11 @@ def parse_args() -> argparse.Namespace:
                         ' It must contain only black and white pixels, black meaning not allowed regions.'
                         ' It must have the same dimensions as the input image')
     parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
-    parser.add_argument(
-        '--conf_threshold',
-        type=float,
-        default=0,
-        help='It must be between 0 and 1')
+    parser.add_argument('--video', type=str, required=False,
+                        help='Path to the reference video for creating the map of allowed regions'
+                        'Video must have the same dimensions ad the map of allowed regions')
+    parser.add_argument('--conf_threshold', type=float, default=0,
+                        help='confidence threshold must be between 0 and 1')
     return parser.parse_args()
 
 
@@ -49,6 +49,12 @@ if __name__ == "__main__":
     allowed_regions_img = Image.open(args.allowed_regions)
     allowed_regions = np.asarray(allowed_regions_img.convert('L'))
     allowed_regions = allowed_regions.T
+
+    # # OR create allowed regions map
+    # video = args.video
+    # created_allowed_regions = abnormality_detection.create_allowed_regions(video, model, device)
+
+    print(allowed_regions.shape)
 
     # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions
