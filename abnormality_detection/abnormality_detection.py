@@ -104,7 +104,8 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
                            radius: int = 0, dimensions: Optional[list[int]] = None, conf_threshold: float = 0,
                            shape_mask: Optional[np.ndarray] = None) -> np.ndarray:
     # UNDER CONSTRUCTION ...
-    created_map = np.zeros((391, 568))
+    created_map = np.zeros([391, 568])
+
     cap = cv2.VideoCapture(video)
     if not cap.isOpened():
         print("Error opening video file!")
@@ -136,8 +137,7 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
         print(img.type)  # just to check if its an Image.Image
         objects_in_frame, _ = grasping_inference(model, img, device, conf_threshold)
         for object in objects_in_frame:
-            created_map[object['x'], object['y']] = 255
-            if radius > 0:
+            if radius >= 0:
                 cv2.circle(created_map, (object['x'], object['y']),
                            radius, 255, thickness=cv2.FILLED)
     return created_map
