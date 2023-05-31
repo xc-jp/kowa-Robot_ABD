@@ -137,6 +137,9 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
         print(img.type)  # just to check if its an Image.Image
         objects_in_frame, _ = grasping_inference(model, img, device, conf_threshold)
         for object in objects_in_frame:
+            position = (object['x'], object['y'])
+            # or wouldn't it be better to call the update function here?
+            # update_allowed_regions(created_map, position, radius, dimensions, shape_mask)
             if radius >= 0:
                 cv2.circle(created_map, (object['x'], object['y']),
                            radius, 255, thickness=cv2.FILLED)
