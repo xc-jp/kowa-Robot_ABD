@@ -1,5 +1,6 @@
 """Module Description"""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+from itertools import combinations
 import json
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image, ImageDraw
+from math import sqrt
 
 from grasping import infer as grasping_infer
 from src.networks.build_network import build_model as build_grasping_model
@@ -64,6 +66,46 @@ def is_allowed(x: float, y: float, allowed_regions: np.ndarray) -> bool:
     return allowed_regions[round(x - 1)][round(y - 1)] != 0
 
 
+def judge_angle(positions: List[Dict[str, Any]], min_angle: float,
+                max_angle: float) -> List[Dict[str, Any]]:
+    # evaluates whether or not the object's angle is within allowed interval
+    for position in positions:
+        position['judge_angle'] = min_angle <= position['beta'] <= max_angle
+    return positions
+
+
+def distance(object1: Dict[str, Any], object2: Dict[str, Any]) -> float:
+    x1 = object1['x']
+    y1 = object1['y']
+    x2 = object2['x']
+    y2 = object2['y']
+    return sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+
+def judge_within_radius_range(objects: List[Dict[str, Any]], min_allowed_separation_dist: Optional[float] = None,
+                              max_allowed_separation_dist: Optional[float] = None) -> List[Dict[str, Any]]:
+    if min_allowed_separation_dist is None and max_allowed_separation_dist is None:
+        raise ValueError("At least on of min_allowed_separation_dist or max_allowed_separation_dist must be provided")
+    for object in objects:
+        object["too_close"] = False
+        object["too_far"] = False
+        object["closest_distance"] = np.inf
+
+    # for a_index, b_index, pair in combinations(enumerate(objects), 2):
+    for ((a_index, _), (b_index, _)) in combinations(enumerate(objects), 2):
+        d = distance(objects[a_index], objects[b_index])
+        objects[a_index]["closest_distance"] = min(objects[a_index]["closest_distance"], d)
+        objects[b_index]["closest_distance"] = min(objects[b_index]["closest_distance"], d)
+
+    for object in objects:
+        if min_allowed_separation_dist is not None and object["closest_distance"] < min_allowed_separation_dist:
+            object["too_close"] = True
+        if max_allowed_separation_dist is not None and object["closest_distance"] > max_allowed_separation_dist:
+            object["too_far"] = True
+
+    return objects
+
+
 def judge_positions(positions: List[Dict[str, Any]],
                     allowed_regions: np.ndarray) -> None:
     # Modifies in-place the items of a list containing the detected positions,
@@ -75,24 +117,52 @@ def judge_positions(positions: List[Dict[str, Any]],
             allowed_regions)
 
 
-def judge_image(model: Dict[str, Any], image: Image.Image, allowed_regions: np.ndarray, device: torch.device, conf_threshold: float = 0
+def judge_image(model: Dict[str, Any], image: Image.Image, device: torch.device, grasping_conf_threshold: float = 0,
+                allowed_regions: Optional[np.ndarray] = None, min_allowed_separation_dist: Optional[float] = None,
+                max_allowed_separation_dist: Optional[float] = None, angle_range: Optional[tuple[float, float]] = None
                 ) -> List[Dict[str, Any]]:
+
+    if (allowed_regions is None and min_allowed_separation_dist is None and
+            max_allowed_separation_dist is None and angle_range is None):
+        raise ValueError("At least one of allowed_regions or min_allowed_separation_dist or"
+                         " max_allowed_separation_dist or angle_range must be provided")
+
     # call grasping inference
     detected_objects, visualization = grasping_inference(
-        model, image, device, conf_threshold=conf_threshold)
-    judge_positions(detected_objects, allowed_regions)
+        model, image, device, conf_threshold=grasping_conf_threshold)
+    if allowed_regions is not None:
+        judge_positions(detected_objects, allowed_regions)
+    if min_allowed_separation_dist or max_allowed_separation_dist:
+        judge_within_radius_range(detected_objects, min_allowed_separation_dist=min_allowed_separation_dist,
+                                  max_allowed_separation_dist=max_allowed_separation_dist)
+    if angle_range:
+        judge_angle(detected_objects, min_angle=angle_range[0], max_angle=angle_range[1])
     return detected_objects, visualization
 
 
-def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.Image):
-    draw = ImageDraw.Draw(allowed_regions_rgb)
+def plot_results(judged_items: List[Dict[str, Any]], draw_image: Image.Image):
+    draw = ImageDraw.Draw(draw_image)
     for item in judged_items:
         x = round(item['x']) - 1
         y = round(item['y']) - 1
-        if item['inside_allowed_region']:
+        if item.get('too_far'):
+            # mark position in red rectangle
+            draw.rectangle([x - 7, y - 5, x + 7, y + 5], outline="red")
+
+        if item.get('too_close'):
+            # mark position in red rectangle
+            draw.rectangle([x - 5, y - 7, x + 5, y + 7], outline="purple")
+
+        if not item.get('judge_angle', True):
+            # mark position in yellow square
+            draw.rectangle((x - 3, y - 3, x + 3, y + 3), fill='orange', outline=None)
+
+        if not item.get('inside_allowed_region', True):
+            # mark position in red circle
+            draw.ellipse((x - 2, y - 2, x + 2, y + 2), fill='red', outline=None)
+
+        if (item.get('inside_allowed_region', True) and not item.get('too_far') and not item.get('too_close')
+                and item.get('judge_angle', True)):
             # mark position in blue
             draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill='blue', outline=None)
-        else:
-            # mark position in red
-            draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill='red', outline=None)
-    return allowed_regions_rgb
+    return draw_image
