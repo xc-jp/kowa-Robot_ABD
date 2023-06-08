@@ -100,22 +100,12 @@ def plot_object(judged_items: List[Dict[str, Any]], allowed_regions_rgb: Image.I
     return allowed_regions_rgb
 
 
+
 def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], device: torch.device,
                            radius: int = 0, dimensions: Optional[list[int]] = None, conf_threshold: float = 0,
                            shape_mask: Optional[np.ndarray] = None) -> np.ndarray:
     # UNDER CONSTRUCTION ...
-    created_map = np.zeros([391, 568])
-
-    cap = cv2.VideoCapture(video)
-    if not cap.isOpened():
-        print("Error opening video file!")
-        exit(0)
-
-    # print('Video properties are being captured..')  # just in case
-    # width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    # height = width = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    # fps = cap.get(cv2.CAP_PROP_FPS)
-
+    
     radius_given, dimensions_given, shape_mask_given = 0, 0, 0
 
     if radius > 0:
@@ -128,18 +118,14 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
     if input_score > 1:
         raise ValueError
 
-    while cap.isOpened():
-        status, frame = cap.read()
-        if not status:
-            break
-        # opencv stores color channels in BGR, so we need to reorder them to RGB
-        img = frame[:, :, (2, 1, 0)]
-        print(img.type)  # just to check if its an Image.Image
-        objects_in_frame, _ = grasping_inference(model, img, device, conf_threshold)
+    created_map = np.zeros([391, 568])
+    for frame in video:
+        # need to change frame from ndarray to image.image
+        objects_in_frame, _ = grasping_inference(model, frame, device, conf_threshold)
         for object in objects_in_frame:
             position = (object['x'], object['y'])
             # or wouldn't it be better to call the update function here?
-            # update_allowed_regions(created_map, position, radius, dimensions, shape_mask)
+            update_allowed_regions(created_map, position, radius, dimensions, shape_mask)
             if radius >= 0:
                 cv2.circle(created_map, (object['x'], object['y']),
                            radius, 255, thickness=cv2.FILLED)

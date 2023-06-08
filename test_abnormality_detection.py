@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 import numpy as np
 from PIL import Image
+import cv2
 
 from abnormality_detection import abnormality_detection
 
@@ -40,6 +41,8 @@ if __name__ == "__main__":
     args = parse_args()
     # select type of device
     device = torch.device('cuda') if args.gpu else torch.device('cpu')
+    video_path = args.video
+    conf_threshold = args.conf_threshold
 
     # load grasping model
     model = abnormality_detection.load_model(Path(args.model_path), device)
@@ -51,8 +54,23 @@ if __name__ == "__main__":
     allowed_regions = allowed_regions.T
 
     # # OR create allowed regions map
-    # video = args.video
     # created_allowed_regions = abnormality_detection.create_allowed_regions(video, model, device)
+    if video_path:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print("Error opening video file!")
+            exit(0)
+        list_of_frames = []
+        while cap.isOpened():
+            status, frame = cap.read()
+            if not status:
+                break
+            # opencv stores color channels in BGR, so we need to reorder them to RGB
+            img = frame[:, :, (2, 1, 0)]
+            list_of_frames = list_of_frames.append(img)
+        created_allowed_regions_map = abnormality_detection.create_allowed_regions(
+            list_of_frames, model, device)
+        print("Allowed_regions_map was created")
 
     print(allowed_regions.shape)
 
