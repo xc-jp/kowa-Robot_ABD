@@ -84,12 +84,13 @@ if __name__ == "__main__":
                 break
             # opencv stores color channels in BGR, so we need to reorder them to RGB
             img = frame[:, :, (2, 1, 0)]
-            list_of_frames = list_of_frames.append(img)
+            list_of_frames.append(img)
         created_allowed_regions_map = abnormality_detection.create_allowed_regions(
             list_of_frames, model, device)
         print("Allowed_regions_map was created")
-
-    print(allowed_regions.shape)
+        cv2.imwrite("./created_map.png", created_allowed_regions_map)
+        # created_allowed_regions_map.save(f"{no_extension}_created_allowed_regions_{ts}.png")
+        print("Allowed regions map created and saved")
 
     # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions

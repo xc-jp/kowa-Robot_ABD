@@ -191,31 +191,31 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
     created_map = np.zeros([391, 568])
     for frame in video:
         # need to change frame from ndarray to image.image
-        objects_in_frame, _ = grasping_inference(model, frame, device, conf_threshold)
+        objects_in_frame, _ = grasping_inference(
+            model, Image.fromarray(frame), device, conf_threshold)
         for object in objects_in_frame:
-            position = (object['x'], object['y'])
+            position = (int(object['x']), int(object['y']))
             # or wouldn't it be better to call the update function here?
-            update_allowed_regions(created_map, position, radius, dimensions, shape_mask)
-            if radius >= 0:
-                cv2.circle(created_map, (object['x'], object['y']),
-                           radius, 255, thickness=cv2.FILLED)
+            update_allowed_regions(created_map, position[0], position[1], radius, dimensions, shape_mask)
+            
     return created_map
 
 
-def update_allowed_regions(allowed_regions: np.ndarray, position: tuple[int, int], radius: int = 0, dimensions: Optional[
+def update_allowed_regions(allowed_regions: np.ndarray, x: int, y: int, radius: int = 0, dimensions: Optional[
                            list[int]] = None, shape_mask: Optional[np.ndarray] = None, angle: Optional[float] = None) -> None:
     # ONGOING
-
-    allowed_regions[position] = 255
+    
+    allowed_regions[x][y] = 255
+    
     if shape_mask:
         if not angle:
             raise ValueError
         rotated_shape_mask = imutils.rotate(shape_mask, angle)
-        cv2.drawContours(allowed_regions, position, rotated_shape_mask, 0, 255, cv2.FILLED)
+        cv2.drawContours(allowed_regions, (x, y), rotated_shape_mask, 0, 255, cv2.FILLED)
     elif dimensions:
         if not angle:
             raise ValueError
         rotated_dimensions = imutils.rotate(dimensions, angle)
-        cv2.drawContours(allowed_regions, position, rotated_dimensions, 0, 255, cv2.FILLED)
+        cv2.drawContours(allowed_regions, (x, y), rotated_dimensions, 0, 255, cv2.FILLED)
     elif radius > 0:
-        cv2.circle(allowed_regions, position, radius, 255, thickness=cv2.FILLED)
+        cv2.circle(allowed_regions, (x,y), radius, 255, thickness=cv2.FILLED)
