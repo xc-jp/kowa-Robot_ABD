@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     allowed_regions = None
 
+    # Capture video frames in a list
     if video_path:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
@@ -75,8 +76,10 @@ if __name__ == "__main__":
             img = frame[:, :, (2, 1, 0)]
             list_of_frames.append(img)
 
+        # create the map of allowed regions
         created_allowed_regions_map = abnormality_detection.create_allowed_regions(
             list_of_frames, model, device, radius)
+
         # save image file
         dt = datetime.now()
         ts = str(datetime.timestamp(dt))
