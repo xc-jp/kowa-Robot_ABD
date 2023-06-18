@@ -204,6 +204,7 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
 def update_allowed_regions(allowed_regions: np.ndarray, x: int, y: int, radius: int = 0, dimensions: Optional[
                            list[int]] = None, shape_mask: Optional[np.ndarray] = None, angle: Optional[float] = None) -> None:
     # ONGOING
+    # UNDER REPAIR
     
     allowed_regions[x][y] = 255
     
@@ -219,3 +220,8 @@ def update_allowed_regions(allowed_regions: np.ndarray, x: int, y: int, radius: 
         cv2.drawContours(allowed_regions, (x, y), rotated_dimensions, 0, 255, cv2.FILLED)
     elif radius > 0:
         cv2.circle(allowed_regions, (x,y), radius, 255, thickness=cv2.FILLED)
+
+
+def create_allowed_angles(video: list[np.ndarray] ) -> tuple[float, float]:
+    #TODO
+    return(tuple(0,0))
