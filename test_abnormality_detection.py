@@ -31,11 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--max-dist', '-D', type=int)
     parser.add_argument('--min-angle', '-a', type=float)
     parser.add_argument('--max-angle', '-A', type=float)
-
     parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
-    parser.add_argument('--video', type=str, required=False,
-                        help='Path to the reference video for creating the map of allowed regions'
-                        'Video must have the same dimensions ad the map of allowed regions')
     parser.add_argument(
         '--conf-threshold',
         type=float,
