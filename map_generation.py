@@ -32,9 +32,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         'Create a map defining allowed areas for objects from a video that is used as reference')
     parser.add_argument(
-        'model_path', type=str, default='C:/Users/GBM/Downloads/XC/kowa_infer/grasping',
+        '--model_path', type=str, default='C:/Users/GBM/Downloads/XC/kowa_infer/grasping',
         help='Path to  the trained 2d picking model weights')
-    parser.add_argument('saving_path', type=str, default='C:/Users/GBM/Downloads/XC/allowed_regions/',
+    parser.add_argument('--saving_path', type=str, default='C:/Users/GBM/Downloads/XC/allowed_regions/',
                         help='Path to store the created map of allowed regions')
     parser.add_argument('--video', type=str, default='C:/Users/GBM/Downloads/testvideo.mp4',
                         help='Path to the reference video for creating the map of allowed regions'

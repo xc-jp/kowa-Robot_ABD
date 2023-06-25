@@ -173,7 +173,7 @@ def plot_results(judged_items: List[Dict[str, Any]], draw_image: Image.Image):
 
 def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], device: torch.device,
                            radius: int = 0, dimensions: Optional[list[int]] = None, conf_threshold: float = 0,
-                           shape_mask: Optional[np.ndarray] = None) -> np.ndarray:
+                           shape_mask: Optional[np.ndarray] = None, angle: Optional[int] = 0) -> np.ndarray:
     # UNDER CONSTRUCTION ...
 
     radius_given, dimensions_given, shape_mask_given = 0, 0, 0
@@ -196,7 +196,14 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
         for object in objects_in_frame:
             position = (int(object['x']), int(object['y']))
             # or wouldn't it be better to call the update function here?
-            update_allowed_regions(created_map, position[0], position[1], radius, dimensions, shape_mask)
+            update_allowed_regions(
+                created_map,
+                position[0],
+                position[1],
+                radius=radius,
+                dimensions=dimensions,
+                shape_mask=shape_mask,
+                angle=angle)
             
     return created_map
 
@@ -204,9 +211,6 @@ def create_allowed_regions(video: list[np.ndarray], model: dict[str, Any], devic
 def update_allowed_regions(allowed_regions: np.ndarray, x: int, y: int, radius: int = 0, dimensions: Optional[
                            list[int]] = None, shape_mask: Optional[np.ndarray] = None, angle: Optional[float] = None) -> None:
     # ONGOING
-    # UNDER REPAIR
-    
-    allowed_regions[x][y] = 255
     
     if shape_mask:
         if not angle:
@@ -220,6 +224,8 @@ def update_allowed_regions(allowed_regions: np.ndarray, x: int, y: int, radius: 
         cv2.drawContours(allowed_regions, (x, y), rotated_dimensions, 0, 255, cv2.FILLED)
     elif radius > 0:
         cv2.circle(allowed_regions, (x,y), radius, 255, thickness=cv2.FILLED)
+    else:
+        allowed_regions[y][x] = 255
 
 
 def create_allowed_angles(video: list[np.ndarray] ) -> tuple[float, float]:
