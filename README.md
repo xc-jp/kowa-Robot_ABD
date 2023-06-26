@@ -1,6 +1,7 @@
 # kowa-Robot_ABD
-* Purpose of work: Abnormality Detection using 2D picking model
-* Detailed description:
+## Purpose of work: Abnormality Detection using 2D picking model
+## Detailed description:
+ ### Abnormality detection:
  Implementing a python script (test_abnormality_detection.py) that receives as input arguments:
     - the trained 2D picking model path
     - the objects' image that is subject for evaluation (normally a camera shot showing objects in the working scene)
@@ -15,8 +16,11 @@
     - saving the visualization as an Image file on the same folder as the input, under the format "inputImagePath_timestamp.jpg"
     - printing the list of objects that are outside the allowed region
     - plotting the detected items' centers on the map with colorcoding (in blue if inside allowed region, else in red)
+
+### Generation script:
+____TODO____
     
-* Necessary Presets:
+## Necessary Presets:
     * Data acquisition: model and sample image files are available on XC's NAS server:
         - Grasping Model: \\192.168.100.95\pub\A4_Kowa-Optronics\6_2D_picking\mlserver_test\kowa_infer.zip
         - _PS_: The user needs to unzip the file, and the model path should point to the "grasping" folder

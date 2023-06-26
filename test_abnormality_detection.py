@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 import numpy as np
 from PIL import Image
+import cv2
 
 from abnormality_detection import abnormality_detection
 
@@ -30,7 +31,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--max-dist', '-D', type=int)
     parser.add_argument('--min-angle', '-a', type=float)
     parser.add_argument('--max-angle', '-A', type=float)
-
     parser.add_argument('--gpu', action='store_true', help='Select device: CPU or CUDA')
     parser.add_argument(
         '--conf-threshold',
@@ -44,6 +44,8 @@ if __name__ == "__main__":
     args = parse_args()
     # select type of device
     device = torch.device('cuda') if args.gpu else torch.device('cpu')
+    video_path = args.video
+    conf_threshold = args.conf_threshold
 
     # load input image (convert from RGBA to RGB)
     image = Image.open(args.image_path).convert('RGB')
@@ -64,6 +66,27 @@ if __name__ == "__main__":
     elif args.min_angle is not None or args.max_angle is not None:
         raise ValueError("Both or Neither min_angle and max_angle must be specified")
 
+    # # OR create allowed regions map
+    # created_allowed_regions = abnormality_detection.create_allowed_regions(video, model, device)
+    if video_path:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print("Error opening video file!")
+            exit(0)
+        list_of_frames = []
+        while cap.isOpened():
+            status, frame = cap.read()
+            if not status:
+                break
+            # opencv stores color channels in BGR, so we need to reorder them to RGB
+            img = frame[:, :, (2, 1, 0)]
+            list_of_frames.append(img)
+        created_allowed_regions_map = abnormality_detection.create_allowed_regions(
+            list_of_frames, model, device)
+        print("Allowed_regions_map was created")
+        cv2.imwrite("./created_map.png", created_allowed_regions_map)
+        # created_allowed_regions_map.save(f"{no_extension}_created_allowed_regions_{ts}.png")
+        print("Allowed regions map created and saved")
 
     # pass image and allowed_regions as arguments for judge_image()
     # judge image according to allowed_regions
@@ -93,4 +116,5 @@ if __name__ == "__main__":
     # plot objects' positions in blue/green on the allowed_region map
     output = abnormality_detection.plot_results(detected_items, image)
     output.save(f"{no_extension}_allowed_regions_{ts}.png")
-    print(f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
+    print(
+        f"Allowed regions judgement visualization saved at: {no_extension}_allowed_regions_{ts}.png")
